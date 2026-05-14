@@ -4,6 +4,11 @@ AI Study Assistant is a Retrieval-Augmented Generation (RAG) application designe
 
 The system allows users to upload PDF or TXT lecture files, build a local FAISS-based knowledge base, and ask questions grounded in the uploaded documents. The assistant returns answers together with retrieved sources, making the responses easier to verify.
 
+## Demo
+
+![AI Study Assistant Demo](assets/screenshot.png)
+
+
 ## Project Goal
 
 The goal of this project is to demonstrate a practical Generative AI system that combines:
