@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+
+# Vector databases / generated indexes
+vector_db/
+*.faiss
+*.pkl
+
+# Uploaded raw files
+data/raw/*
+data/processed/*
+
+# Keep structure files
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# Streamlit secrets
+.streamlit/secrets.toml

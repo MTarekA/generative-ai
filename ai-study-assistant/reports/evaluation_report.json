@@ -1,0 +1,116 @@
+{
+  "created_at": "2026-05-14T16:38:39",
+  "total_cases": 3,
+  "passed_cases": 3,
+  "failed_cases": 0,
+  "pass_rate": 1.0,
+  "evaluation_cases": [
+    {
+      "question": "What is Retrieval-Augmented Generation?",
+      "expected_keywords": [
+        "retrieval",
+        "generation"
+      ],
+      "should_have_sources": true
+    },
+    {
+      "question": "What are the main steps of a RAG pipeline?",
+      "expected_keywords": [
+        "document",
+        "chunk",
+        "embedding",
+        "retrieval"
+      ],
+      "should_have_sources": true
+    },
+    {
+      "question": "What is the capital city of Brazil?",
+      "expected_keywords": [
+        "could not find",
+        "provided documents"
+      ],
+      "should_have_sources": false
+    }
+  ],
+  "results": [
+    {
+      "question": "What is Retrieval-Augmented Generation?",
+      "expected_keywords": [
+        "retrieval",
+        "generation"
+      ],
+      "answer": "Retrieval-Augmented Generation, or RAG, is a method that combines information retrieval with language generation. Unlike traditional models that depend solely on their internal knowledge, a RAG system enhances its responses by retrieving relevant documents and using them as context for generating answers.\n\nThe typical process of a RAG system involves several steps:\n1. **Document Loading**: Gathering relevant documents from a database or corpus.\n2. **Text Chunking**: Breaking down the documents into manageable pieces or chunks.\n3. **Embedding Generation**: Creating vector representations of the text chunks to facilitate retrieval.\n4. **Vector Storage**: Storing these vectors in a way that allows for efficient searching.\n5. **Retrieval**: Finding the most relevant chunks based on a query.\n6. **Final Answer Generation**: Using a large language model to generate a coherent answer based on the retrieved context.\n\nThis approach allows for more accurate and contextually relevant responses in generative AI applications.",
+      "keyword_results": {
+        "retrieval": true,
+        "generation": true
+      },
+      "source_count": 1,
+      "sources": [
+        {
+          "file_name": "test_lecture.txt",
+          "file_type": "txt",
+          "page": "N/A",
+          "chunk_id": 0,
+          "preview": "Generative AI is a field of artificial intelligence that focuses on creating new content such as text, images, audio, and code. Retrieval-Augmented Generation, also known as RAG, combines information retrieval with langu...",
+          "source": "C:\\Users\\User\\ai-study-assistant\\data\\raw\\test_lecture.txt"
+        }
+      ],
+      "should_have_sources": true,
+      "passed": true
+    },
+    {
+      "question": "What are the main steps of a RAG pipeline?",
+      "expected_keywords": [
+        "document",
+        "chunk",
+        "embedding",
+        "retrieval"
+      ],
+      "answer": "The main steps of a RAG (Retrieval-Augmented Generation) pipeline are as follows:\n\n1. **Document Loading**: This step involves gathering the documents that will be used for information retrieval.\n\n2. **Text Chunking**: The loaded documents are divided into smaller, manageable pieces or chunks of text.\n\n3. **Embedding Generation**: Each text chunk is transformed into a numerical representation (embedding) that captures its semantic meaning.\n\n4. **Vector Storage**: The generated embeddings are stored in a vector database for efficient retrieval.\n\n5. **Retrieval**: When a query is made, relevant text chunks are retrieved from the vector storage based on their embeddings.\n\n6. **Final Answer Generation**: A large language model uses the retrieved documents as context to generate the final answer to the query.\n\nThese steps work together to enhance the quality and relevance of the generated content by leveraging external information.",
+      "keyword_results": {
+        "document": true,
+        "chunk": true,
+        "embedding": true,
+        "retrieval": true
+      },
+      "source_count": 1,
+      "sources": [
+        {
+          "file_name": "test_lecture.txt",
+          "file_type": "txt",
+          "page": "N/A",
+          "chunk_id": 0,
+          "preview": "Generative AI is a field of artificial intelligence that focuses on creating new content such as text, images, audio, and code. Retrieval-Augmented Generation, also known as RAG, combines information retrieval with langu...",
+          "source": "C:\\Users\\User\\ai-study-assistant\\data\\raw\\test_lecture.txt"
+        }
+      ],
+      "should_have_sources": true,
+      "passed": true
+    },
+    {
+      "question": "What is the capital city of Brazil?",
+      "expected_keywords": [
+        "could not find",
+        "provided documents"
+      ],
+      "answer": "I could not find this information in the provided documents.",
+      "keyword_results": {
+        "could not find": true,
+        "provided documents": true
+      },
+      "source_count": 1,
+      "sources": [
+        {
+          "file_name": "test_lecture.txt",
+          "file_type": "txt",
+          "page": "N/A",
+          "chunk_id": 0,
+          "preview": "Generative AI is a field of artificial intelligence that focuses on creating new content such as text, images, audio, and code. Retrieval-Augmented Generation, also known as RAG, combines information retrieval with langu...",
+          "source": "C:\\Users\\User\\ai-study-assistant\\data\\raw\\test_lecture.txt"
+        }
+      ],
+      "should_have_sources": false,
+      "passed": true
+    }
+  ]
+}
