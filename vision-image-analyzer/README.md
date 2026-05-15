@@ -4,6 +4,10 @@ AI Image Understanding Assistant is a Generative AI vision project that allows u
 
 The application uses a vision-capable language model to analyze images, explain visible elements, summarize screenshots or slides, and answer user questions in a structured way.
 
+## Demo
+
+![AI Image Understanding Assistant Demo](assets/screenshot.png)
+
 ## Project Goal
 
 The goal of this project is to demonstrate a practical Vision-Language AI application that combines:
