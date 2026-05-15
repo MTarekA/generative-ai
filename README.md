@@ -10,8 +10,9 @@ The goal of this portfolio is to demonstrate not only isolated model calls, but 
 |---|---|---|---|
 | AI Study Assistant | RAG / Text | Completed | A Retrieval-Augmented Generation application for asking questions about uploaded lecture documents. |
 | AI Image Understanding Assistant | Vision | Completed | A vision-language application for analyzing uploaded images and answering questions about their visual content. |
-| Voice Meeting Assistant | Voice / Audio | Planned | A speech-to-text and summarization assistant for audio recordings and meetings. |
-| MCP Workspace Agent | MCP / Tools | Planned | An AI agent connected to external tools and local workspace resources using an MCP-style architecture. |
+| AI Voice Meeting Assistant | Voice / Audio | Completed | A voice/audio application for transcribing audio files and generating structured summaries. |
+| MCP Workspace Assistant | MCP / Tools | Planned | A tool-connected AI assistant for interacting with local workspace files and structured tools. |
+
 
 ## Projects
 
@@ -87,37 +88,66 @@ pip install -r requirements.txt
 python -m streamlit run streamlit_app.py
 ```
 
-### 3. Voice Meeting Assistant
+### 3. AI Voice Meeting Assistant
 
-Status: Planned
+Location:
 
-This project will focus on voice and audio processing. The planned system will allow users to upload or record audio, transcribe speech into text, summarize the content, extract action items, and generate structured notes.
+```text
+voice-meeting-assistant/
+```
 
-Planned features:
+AI Voice Meeting Assistant is a voice/audio Generative AI application that allows users to upload audio files, transcribe speech into text, and generate structured summaries.
 
-- Audio upload
+Main features:
+
+- MP3, WAV, M4A, WEBM, and MP4 audio upload
+- Audio validation and metadata extraction
 - Speech-to-text transcription
-- Meeting summarization
-- Action item extraction
-- Multilingual support
-- Exportable summaries
+- Transcript summarization
+- Structured summaries with key points, action items, decisions, open questions, and keywords
 - Streamlit interface
-- Health check and tests
+- Arabic RTL support
+- JSON result export
+- Automatic result saving
+- CLI support
+- Unit tests
+- Health check
+- Demo screenshot support
 
-### 4. MCP Workspace Agent
+Run locally:
+
+```bash
+cd voice-meeting-assistant
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+python -m streamlit run streamlit_app.py
+```
+
+### 4. MCP Workspace Assistant
 
 Status: Planned
 
-This project will focus on connecting AI models with external tools and local workspace resources. The goal is to build an agent that can interact with files, structured data, and tools through a clean tool-using architecture.
+Location:
+
+```text
+mcp-workspace-assistant/
+```
+
+This project will focus on connecting an AI assistant with local workspace tools and resources through an MCP-style architecture.
+
+The goal is to show how an LLM can interact with external tools in a structured and controlled way instead of only generating text.
 
 Planned features:
 
-- Tool-using AI agent
-- Local file interaction
-- JSON and CSV reading
-- Task execution through tools
-- Workspace assistant interface
-- MCP-style architecture
+- Workspace file listing
+- Safe text file reading
+- Note creation and editing
+- Task file generation
+- Local workspace search
+- Tool-calling assistant pipeline
+- Streamlit interface
+- CLI support
 - Logging, tests, and documentation
 
 ## Repository Structure
@@ -142,8 +172,14 @@ generative-ai/
 │   └── README.md
 │
 ├── voice-meeting-assistant/
+│   ├── app/
+│   ├── tests/
+│   ├── streamlit_app.py
+│   ├── run.py
+│   ├── health_check.py
+│   └── README.md
 │
-├── mcp-workspace-agent/
+├── mcp-workspace-assistant/
 │
 └── README.md
 ```
