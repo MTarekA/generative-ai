@@ -4,6 +4,16 @@ AI Voice Meeting Assistant is a Generative AI voice/audio project that allows us
 
 The application is designed for short meetings, study recordings, voice notes, and audio explanations. It combines speech-to-text transcription with LLM-based summarization to produce useful outputs such as key points, action items, decisions, open questions, and keywords.
 
+## Demo
+
+### Audio Upload and Transcript View
+
+![AI Voice Meeting Assistant - Upload and Transcript](assets/screenshot_upload_transcript.png)
+
+### Structured Summary and Result Export
+
+![AI Voice Meeting Assistant - Summary and Result Export](assets/screenshot_summary_result.png)
+
 ## Project Goal
 
 The goal of this project is to demonstrate a practical Voice / Audio Generative AI workflow that combines:
