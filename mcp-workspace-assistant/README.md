@@ -4,6 +4,20 @@ MCP Workspace Assistant is a tool-connected Generative AI project that demonstra
 
 The project follows an MCP-style architecture, where the assistant does not directly access files. Instead, it uses controlled tools for listing files, reading text files, writing notes, appending content, searching the workspace, and creating task files.
 
+## Demo
+
+### Chat Commands and Workspace Overview
+
+![MCP Workspace Assistant - Chat Commands](assets/screenshot_chat_commands.png)
+
+### Workspace Tools in Action
+
+![MCP Workspace Assistant - Workspace Tools](assets/screenshot_workspace_tools.png)
+
+### Search and Task Creation
+
+![MCP Workspace Assistant - Task Creation](assets/screenshot_task_creation.png)
+
 ## Project Goal
 
 The goal of this project is to demonstrate a practical tool-using AI assistant that can interact with external resources in a controlled and safe way.
