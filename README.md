@@ -11,8 +11,7 @@ The goal of this portfolio is to demonstrate not only isolated model calls, but 
 | AI Study Assistant | RAG / Text | Completed | A Retrieval-Augmented Generation application for asking questions about uploaded lecture documents. |
 | AI Image Understanding Assistant | Vision | Completed | A vision-language application for analyzing uploaded images and answering questions about their visual content. |
 | AI Voice Meeting Assistant | Voice / Audio | Completed | A voice/audio application for transcribing audio files and generating structured summaries. |
-| MCP Workspace Assistant | MCP / Tools | Planned | A tool-connected AI assistant for interacting with local workspace files and structured tools. |
-
+| MCP Workspace Assistant | MCP / Tools | Completed | A tool-connected workspace assistant for safely interacting with local files through MCP-style tools. |
 
 ## Projects
 
@@ -126,29 +125,45 @@ python -m streamlit run streamlit_app.py
 
 ### 4. MCP Workspace Assistant
 
-Status: Planned
-
 Location:
 
 ```text
 mcp-workspace-assistant/
 ```
 
-This project will focus on connecting an AI assistant with local workspace tools and resources through an MCP-style architecture.
+MCP Workspace Assistant is a tool-connected Generative AI application that demonstrates how an assistant can safely interact with a local workspace through structured tools.
 
-The goal is to show how an LLM can interact with external tools in a structured and controlled way instead of only generating text.
+The assistant can list files, read text files, write notes, append content, search workspace files, and create task files. All file operations are restricted to a controlled local workspace to prevent unsafe path access.
 
-Planned features:
+Main features:
 
+- Safe local workspace interaction
 - Workspace file listing
 - Safe text file reading
-- Note creation and editing
-- Task file generation
-- Local workspace search
-- Tool-calling assistant pipeline
-- Streamlit interface
+- Markdown note creation
+- Note appending
+- Workspace text search
+- Markdown task file generation
+- MCP-style tool abstraction
+- Deterministic assistant pipeline
+- Path traversal protection
+- Streamlit chat interface
+- Tool details shown as JSON
+- Chat history export
 - CLI support
-- Logging, tests, and documentation
+- Unit tests
+- Health check
+- Demo screenshot support
+
+Run locally:
+
+```bash
+cd mcp-workspace-assistant
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+python -m streamlit run streamlit_app.py
+```
 
 ## Repository Structure
 
@@ -158,6 +173,7 @@ generative-ai/
 ├── ai-study-assistant/
 │   ├── app/
 │   ├── tests/
+│   ├── assets/
 │   ├── streamlit_app.py
 │   ├── run.py
 │   ├── health_check.py
@@ -166,6 +182,7 @@ generative-ai/
 ├── vision-image-analyzer/
 │   ├── app/
 │   ├── tests/
+│   ├── assets/
 │   ├── streamlit_app.py
 │   ├── run.py
 │   ├── health_check.py
@@ -174,15 +191,23 @@ generative-ai/
 ├── voice-meeting-assistant/
 │   ├── app/
 │   ├── tests/
+│   ├── assets/
 │   ├── streamlit_app.py
 │   ├── run.py
 │   ├── health_check.py
 │   └── README.md
 │
 ├── mcp-workspace-assistant/
+│   ├── app/
+│   ├── tests/
+│   ├── assets/
+│   ├── workspace/
+│   ├── streamlit_app.py
+│   ├── run.py
+│   ├── health_check.py
+│   └── README.md
 │
 └── README.md
-```
 
 ## Common Engineering Practices Used
 
