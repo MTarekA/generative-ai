@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+
+# Generated outputs
+outputs/*
+!outputs/.gitkeep
+
+# Workspace generated / private files
+workspace/notes/*
+workspace/tasks/*
+workspace/documents/*
+
+!workspace/notes/.gitkeep
+!workspace/tasks/.gitkeep
+!workspace/documents/.gitkeep
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# Streamlit secrets
+.streamlit/secrets.toml
