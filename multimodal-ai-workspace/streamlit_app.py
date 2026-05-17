@@ -5,6 +5,7 @@ from PIL import Image
 
 from app.config import (
     INTEGRATED_AUDIO_DIR,
+    INTEGRATED_DOCUMENTS_DIR,
     INTEGRATED_IMAGES_DIR,
     ensure_directories,
     get_settings,
@@ -15,6 +16,7 @@ from app.health_overview import (
 )
 from app.integrated_assistant import IntegratedWorkspaceAssistant
 from app.integrated_audio_summary_pipeline import IntegratedAudioSummaryPipeline
+from app.integrated_rag_pipeline import IntegratedRAGPipeline
 from app.integrated_transcription_pipeline import IntegratedTranscriptionPipeline
 from app.integrated_vision_pipeline import IntegratedVisionPipeline
 from app.integrated_workspace_manager import (
@@ -812,6 +814,254 @@ def render_audio_summary_integrated_tab() -> None:
     render_integrated_audio_result()
 
 
+def initialize_integrated_rag_state() -> None:
+    """
+    Initialize session state for the integrated RAG demo.
+    """
+    if "integrated_rag_messages" not in st.session_state:
+        st.session_state.integrated_rag_messages = []
+
+    if "integrated_rag_ready" not in st.session_state:
+        st.session_state.integrated_rag_ready = False
+
+    if "integrated_rag_build_info" not in st.session_state:
+        st.session_state.integrated_rag_build_info = None
+
+
+def save_integrated_uploaded_document(uploaded_file) -> Path:
+    """
+    Save uploaded PDF/TXT document into integrated_uploads/documents.
+    """
+    INTEGRATED_DOCUMENTS_DIR.mkdir(parents=True, exist_ok=True)
+
+    file_path = INTEGRATED_DOCUMENTS_DIR / uploaded_file.name
+
+    with open(file_path, "wb") as file:
+        file.write(uploaded_file.getbuffer())
+
+    return file_path
+
+
+def list_integrated_documents() -> list[Path]:
+    """
+    List uploaded integrated RAG documents.
+    """
+    if not INTEGRATED_DOCUMENTS_DIR.exists():
+        return []
+
+    supported_extensions = {".pdf", ".txt"}
+
+    return sorted(
+        [
+            path
+            for path in INTEGRATED_DOCUMENTS_DIR.iterdir()
+            if path.is_file()
+            and path.suffix.lower() in supported_extensions
+        ]
+    )
+
+
+def render_integrated_rag_sources(sources: list[dict]) -> None:
+    """
+    Render retrieved RAG sources.
+    """
+    if not sources:
+        st.warning("No sources were returned.")
+        return
+
+    for index, source in enumerate(sources, start=1):
+        file_name = source.get("file_name", "unknown")
+        file_type = source.get("file_type", "unknown")
+        page = source.get("page", "N/A")
+        chunk_id = source.get("chunk_id", "N/A")
+        preview = source.get("preview", "")
+
+        with st.expander(f"Source {index}: {file_name}"):
+            st.write(f"File type: {file_type}")
+            st.write(f"Page: {page}")
+            st.write(f"Chunk ID: {chunk_id}")
+            st.write("Preview:")
+            st.info(preview)
+
+
+def render_integrated_rag_chat_history() -> None:
+    """
+    Render integrated RAG chat history.
+    """
+    for message in st.session_state.integrated_rag_messages:
+        role = message["role"]
+        content = message["content"]
+
+        with st.chat_message(role):
+            st.write(content)
+
+            if role == "assistant" and message.get("sources"):
+                st.write("Sources:")
+                render_integrated_rag_sources(message["sources"])
+
+
+def build_integrated_rag_knowledge_base() -> None:
+    """
+    Build the integrated RAG knowledge base.
+    """
+    try:
+        with st.spinner("Building integrated RAG knowledge base..."):
+            pipeline = IntegratedRAGPipeline()
+            build_result = pipeline.build_knowledge_base()
+
+        st.session_state.integrated_rag_ready = True
+        st.session_state.integrated_rag_build_info = {
+            "document_count": build_result.document_count,
+            "chunk_count": build_result.chunk_count,
+        }
+
+        st.success(
+            "Integrated RAG knowledge base built successfully. "
+            f"Documents: {build_result.document_count}, "
+            f"Chunks: {build_result.chunk_count}"
+        )
+
+    except Exception as error:
+        st.session_state.integrated_rag_ready = False
+        st.error(f"Failed to build integrated RAG knowledge base: {error}")
+
+
+def handle_integrated_rag_question(question: str) -> None:
+    """
+    Ask a question through the integrated RAG pipeline.
+    """
+    st.session_state.integrated_rag_messages.append(
+        {
+            "role": "user",
+            "content": question,
+        }
+    )
+
+    with st.chat_message("user"):
+        st.write(question)
+
+    with st.chat_message("assistant"):
+        try:
+            with st.spinner("Retrieving context and generating answer..."):
+                pipeline = IntegratedRAGPipeline()
+                response = pipeline.ask(question)
+
+            st.write(response.answer)
+
+            st.write("Sources:")
+            render_integrated_rag_sources(response.sources)
+
+            st.session_state.integrated_rag_messages.append(
+                {
+                    "role": "assistant",
+                    "content": response.answer,
+                    "sources": response.sources,
+                    "question": response.question,
+                    "model": response.model,
+                }
+            )
+
+        except Exception as error:
+            error_message = f"Error: {error}"
+            st.error(error_message)
+
+            st.session_state.integrated_rag_messages.append(
+                {
+                    "role": "assistant",
+                    "content": error_message,
+                    "sources": [],
+                }
+            )
+
+
+def render_document_rag_integrated_tab() -> None:
+    """
+    Render the integrated Document RAG tab.
+    """
+    initialize_integrated_rag_state()
+
+    st.subheader("Document RAG")
+    st.write(
+        "This tab integrates PDF/TXT document upload, FAISS-based retrieval, "
+        "and grounded question answering directly inside the Multimodal AI Workspace."
+    )
+
+    uploaded_files = st.file_uploader(
+        "Upload PDF or TXT documents",
+        type=["pdf", "txt"],
+        accept_multiple_files=True,
+        key="integrated_rag_uploader",
+    )
+
+    if uploaded_files:
+        for uploaded_file in uploaded_files:
+            saved_path = save_integrated_uploaded_document(uploaded_file)
+            st.success(f"Saved: {saved_path.name}")
+
+        st.session_state.integrated_rag_ready = False
+
+    documents = list_integrated_documents()
+
+    left_col, right_col = st.columns([1, 1])
+
+    with left_col:
+        st.subheader("Uploaded Documents")
+
+        if documents:
+            for document in documents:
+                st.write(f"- {document.name}")
+        else:
+            st.info("No PDF or TXT documents uploaded yet.")
+
+    with right_col:
+        st.subheader("Knowledge Base")
+
+        if st.session_state.integrated_rag_build_info:
+            build_info = st.session_state.integrated_rag_build_info
+            st.metric("Documents", build_info["document_count"])
+            st.metric("Chunks", build_info["chunk_count"])
+
+        if st.button("Build / Rebuild RAG Knowledge Base"):
+            build_integrated_rag_knowledge_base()
+
+        if not st.session_state.integrated_rag_ready:
+            st.warning(
+                "Build the knowledge base before asking questions. "
+                "If you upload new documents, rebuild the index."
+            )
+        else:
+            st.success("RAG knowledge base is ready.")
+
+    st.divider()
+
+    st.subheader("Chat with your integrated documents")
+
+    render_integrated_rag_chat_history()
+
+    question = st.chat_input(
+        "Ask a question about the uploaded documents...",
+        key="integrated_rag_chat_input",
+    )
+
+    if question:
+        handle_integrated_rag_question(question)
+
+    st.divider()
+
+    col1, col2 = st.columns([1, 1])
+
+    with col1:
+        if st.button("Clear Integrated RAG Chat History"):
+            st.session_state.integrated_rag_messages = []
+            st.success("Integrated RAG chat history cleared.")
+
+    with col2:
+        st.caption(
+            "Uploaded documents and FAISS index files are ignored by Git "
+            "to avoid committing private or generated data."
+        )
+
+
 def render_integrated_demo_page() -> None:
     """
     Render the integrated demo page.
@@ -829,8 +1079,8 @@ def render_integrated_demo_page() -> None:
 
     st.info(
         "This section is being built incrementally. "
-        "Workspace Tools, Image Understanding, and Audio Summary are now "
-        "integrated inside this unified workspace."
+        "Workspace Tools, Image Understanding, Audio Summary, and Document RAG "
+        "are now integrated inside this unified workspace."
     )
 
     rag_tab, vision_tab, audio_tab, mcp_tab = st.tabs(
@@ -843,28 +1093,7 @@ def render_integrated_demo_page() -> None:
     )
 
     with rag_tab:
-        st.subheader("Document RAG")
-        st.write(
-            "This tab will integrate the document question-answering workflow "
-            "from the AI Study Assistant project."
-        )
-
-        st.markdown(
-            """
-            Planned capabilities:
-
-            - Upload PDF or TXT files
-            - Build or load a local knowledge base
-            - Ask questions grounded in uploaded documents
-            - Show retrieved source previews
-            - Export chat history
-            """
-        )
-
-        st.warning(
-            "Status: planned integration. "
-            "This will be added after the lighter integrations are stable."
-        )
+        render_document_rag_integrated_tab()
 
     with vision_tab:
         render_image_understanding_integrated_tab()
