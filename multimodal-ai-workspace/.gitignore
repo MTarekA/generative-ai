@@ -47,3 +47,7 @@ integrated_workspace/documents/*
 # Integrated uploaded files
 integrated_uploads/images/*
 !integrated_uploads/images/.gitkeep
+
+# Integrated uploaded audio files
+integrated_uploads/audio/*
+!integrated_uploads/audio/.gitkeep
