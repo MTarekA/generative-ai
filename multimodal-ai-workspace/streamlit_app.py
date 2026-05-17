@@ -1,11 +1,19 @@
-import streamlit as st
+from pathlib import Path
 
-from app.config import ensure_directories, get_settings
+import streamlit as st
+from PIL import Image
+
+from app.config import (
+    INTEGRATED_IMAGES_DIR,
+    ensure_directories,
+    get_settings,
+)
 from app.health_overview import (
     get_overall_portfolio_score,
     get_portfolio_health_overview,
 )
 from app.integrated_assistant import IntegratedWorkspaceAssistant
+from app.integrated_vision_pipeline import IntegratedVisionPipeline
 from app.integrated_workspace_manager import (
     INTEGRATED_WORKSPACE_DIR,
     IntegratedWorkspaceManager,
@@ -459,6 +467,197 @@ def render_workspace_tools_integrated_tab() -> None:
             st.success("Integrated workspace chat history cleared.")
 
 
+def initialize_integrated_vision_state() -> None:
+    """
+    Initialize session state for the integrated vision demo.
+    """
+    if "integrated_vision_messages" not in st.session_state:
+        st.session_state.integrated_vision_messages = []
+
+    if "integrated_current_image_path" not in st.session_state:
+        st.session_state.integrated_current_image_path = None
+
+    if "integrated_current_image_name" not in st.session_state:
+        st.session_state.integrated_current_image_name = None
+
+
+def save_integrated_uploaded_image(uploaded_file) -> Path:
+    """
+    Save uploaded image into integrated_uploads/images.
+    """
+    INTEGRATED_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+
+    file_path = INTEGRATED_IMAGES_DIR / uploaded_file.name
+
+    with open(file_path, "wb") as file:
+        file.write(uploaded_file.getbuffer())
+
+    return file_path
+
+
+def render_integrated_image_metadata(metadata: dict) -> None:
+    """
+    Render image metadata in a compact format.
+    """
+    with st.expander("Image metadata"):
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            st.metric("Width", metadata.get("width", "N/A"))
+
+        with col2:
+            st.metric("Height", metadata.get("height", "N/A"))
+
+        with col3:
+            st.metric("Mode", metadata.get("mode", "N/A"))
+
+        st.write(f"File name: {metadata.get('file_name', 'unknown')}")
+        st.write(f"File type: {metadata.get('file_extension', 'unknown')}")
+        st.write(f"MIME type: {metadata.get('mime_type', 'unknown')}")
+
+
+def render_integrated_vision_history() -> None:
+    """
+    Render previous integrated vision questions and answers.
+    """
+    for message in st.session_state.integrated_vision_messages:
+        role = message["role"]
+        content = message["content"]
+
+        with st.chat_message(role):
+            st.write(content)
+
+            if role == "assistant" and message.get("image_metadata"):
+                render_integrated_image_metadata(message["image_metadata"])
+
+
+def handle_integrated_vision_question(
+    image_path: Path,
+    question: str,
+) -> None:
+    """
+    Analyze an image question through the integrated vision pipeline.
+    """
+    st.session_state.integrated_vision_messages.append(
+        {
+            "role": "user",
+            "content": question,
+        }
+    )
+
+    with st.chat_message("user"):
+        st.write(question)
+
+    with st.chat_message("assistant"):
+        try:
+            with st.spinner("Analyzing image..."):
+                pipeline = IntegratedVisionPipeline()
+                response = pipeline.analyze_image(
+                    image_path=image_path,
+                    question=question,
+                )
+
+            st.write(response.answer)
+
+            render_integrated_image_metadata(response.image_metadata)
+
+            st.session_state.integrated_vision_messages.append(
+                {
+                    "role": "assistant",
+                    "content": response.answer,
+                    "image_metadata": response.image_metadata,
+                    "question": response.question,
+                    "model": response.model,
+                }
+            )
+
+        except Exception as error:
+            error_message = f"Error: {error}"
+            st.error(error_message)
+
+            st.session_state.integrated_vision_messages.append(
+                {
+                    "role": "assistant",
+                    "content": error_message,
+                    "image_metadata": {},
+                }
+            )
+
+
+def render_image_understanding_integrated_tab() -> None:
+    """
+    Render the integrated image understanding tab.
+    """
+    initialize_integrated_vision_state()
+
+    st.subheader("Image Understanding")
+    st.write(
+        "This tab integrates image upload and vision-language analysis "
+        "directly inside the Multimodal AI Workspace."
+    )
+
+    uploaded_file = st.file_uploader(
+        "Upload an image",
+        type=["png", "jpg", "jpeg", "webp"],
+        key="integrated_vision_uploader",
+    )
+
+    if uploaded_file is not None:
+        image_path = save_integrated_uploaded_image(uploaded_file)
+
+        if st.session_state.integrated_current_image_name != uploaded_file.name:
+            st.session_state.integrated_vision_messages = []
+
+        st.session_state.integrated_current_image_path = image_path
+        st.session_state.integrated_current_image_name = uploaded_file.name
+
+        st.success(f"Image saved: {image_path.name}")
+
+    if st.session_state.integrated_current_image_path is None:
+        st.info("Upload an image to start the integrated vision demo.")
+        return
+
+    image_path = Path(st.session_state.integrated_current_image_path)
+
+    left_col, right_col = st.columns([1, 1])
+
+    with left_col:
+        st.subheader("Uploaded Image")
+        image = Image.open(image_path)
+        st.image(
+            image,
+            caption=st.session_state.integrated_current_image_name,
+            use_container_width=True,
+        )
+
+    with right_col:
+        st.subheader("Chat with the image")
+
+        st.caption(
+            "Example questions: "
+            "Describe this image. / What text is visible? / اشرح الصورة دي."
+        )
+
+        render_integrated_vision_history()
+
+        question = st.chat_input(
+            "Ask a question about the uploaded image...",
+            key="integrated_vision_chat_input",
+        )
+
+        if question:
+            handle_integrated_vision_question(
+                image_path=image_path,
+                question=question,
+            )
+
+    st.divider()
+
+    if st.button("Clear Integrated Vision History"):
+        st.session_state.integrated_vision_messages = []
+        st.success("Integrated vision history cleared.")
+
+
 def render_integrated_demo_page() -> None:
     """
     Render the integrated demo page.
@@ -476,8 +675,8 @@ def render_integrated_demo_page() -> None:
 
     st.info(
         "This section is being built incrementally. "
-        "The first integrated capability is the MCP Workspace Tools tab, "
-        "because it is local, safe, and does not require external API calls."
+        "The Workspace Tools tab is already integrated locally, and the "
+        "Image Understanding tab is now integrated with an OpenAI vision model."
     )
 
     rag_tab, vision_tab, audio_tab, mcp_tab = st.tabs(
@@ -514,28 +713,7 @@ def render_integrated_demo_page() -> None:
         )
 
     with vision_tab:
-        st.subheader("Image Understanding")
-        st.write(
-            "This tab will integrate image upload and vision-language analysis "
-            "from the AI Image Understanding Assistant project."
-        )
-
-        st.markdown(
-            """
-            Planned capabilities:
-
-            - Upload PNG, JPG, JPEG, or WEBP images
-            - Ask questions about image content
-            - Display image metadata
-            - Save analysis results
-            - Export analysis history
-            """
-        )
-
-        st.warning(
-            "Status: planned integration. "
-            "This will be added after the MCP tools tab."
-        )
+        render_image_understanding_integrated_tab()
 
     with audio_tab:
         st.subheader("Audio Summary")
