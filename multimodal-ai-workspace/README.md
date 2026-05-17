@@ -127,13 +127,10 @@ Provides the first step toward a real unified multimodal workspace.
 
 The currently implemented integrated capabilities are:
 
-- Workspace Tools
+- Document RAG
 - Image Understanding
 - Audio Summary
-
-The remaining planned integrated capability is:
-
-- Document RAG
+- Workspace Tools
 
 ## Integrated Demo
 
@@ -143,45 +140,70 @@ This section represents phase two of the portfolio: gradually turning the portfo
 
 Current integrated capabilities:
 
-- Workspace Tools: implemented
+- Document RAG: implemented
 - Image Understanding: implemented
 - Audio Summary: implemented
-- Document RAG: planned
+- Workspace Tools: implemented
 
-### Workspace Tools
+### Document RAG
 
-The Workspace Tools tab is fully implemented and runs locally without external API calls.
+The Document RAG tab is implemented as part of the integrated demo.
+
+It allows users to upload PDF or TXT documents, build a local FAISS knowledge base, and ask grounded questions about the uploaded documents directly inside the Multimodal AI Workspace.
 
 It supports:
 
-- Listing integrated workspace files
-- Writing Markdown notes
-- Reading notes
-- Appending content to existing notes
-- Searching workspace content
-- Creating Markdown task files
-- Showing structured tool results as JSON
-- Safe path handling inside `integrated_workspace/`
+- PDF and TXT document upload
+- Local document storage inside `integrated_uploads/documents/`
+- Document loading with metadata
+- Text splitting into chunks
+- OpenAI embedding generation
+- Local FAISS vector store creation
+- Similarity search over uploaded documents
+- Grounded question answering
+- Source preview display
+- Chat-style interaction
 
-Supported commands:
-
-```text
-help
-list files
-write note file_name | note content
-append note file_name | content to append
-read notes/example.md
-search keyword
-create task file_name | Task title | task 1; task 2; task 3
-```
-
-Generated workspace files are stored inside:
+The integrated RAG backend is implemented through:
 
 ```text
-integrated_workspace/
+app/integrated_document_loader.py
+app/integrated_text_splitter.py
+app/integrated_vector_store.py
+app/integrated_rag_pipeline.py
 ```
 
-Private and generated workspace content is ignored by Git, while `.gitkeep` files preserve the folder structure.
+The RAG pipeline follows this workflow:
+
+```text
+PDF/TXT upload
+        ↓
+Document loading
+        ↓
+Text splitting
+        ↓
+OpenAI embeddings
+        ↓
+FAISS vector store
+        ↓
+Similarity search
+        ↓
+Grounded answer generation
+        ↓
+Source display
+```
+
+The integrated RAG configuration is controlled through:
+
+```env
+OPENAI_RAG_MODEL=gpt-4o-mini
+OPENAI_EMBEDDING_MODEL=text-embedding-3-small
+RAG_CHUNK_SIZE=1000
+RAG_CHUNK_OVERLAP=150
+RAG_TOP_K=4
+```
+
+Uploaded documents and generated FAISS index files are ignored by Git.
 
 ### Image Understanding
 
@@ -264,9 +286,40 @@ OPENAI_SUMMARY_MODEL=gpt-4o-mini
 
 Uploaded integrated demo audio files are ignored by Git.
 
-Planned next integration:
+### Workspace Tools
 
-- Document RAG tab
+The Workspace Tools tab is fully implemented and runs locally without external API calls.
+
+It supports:
+
+- Listing integrated workspace files
+- Writing Markdown notes
+- Reading notes
+- Appending content to existing notes
+- Searching workspace content
+- Creating Markdown task files
+- Showing structured tool results as JSON
+- Safe path handling inside `integrated_workspace/`
+
+Supported commands:
+
+```text
+help
+list files
+write note file_name | note content
+append note file_name | content to append
+read notes/example.md
+search keyword
+create task file_name | Task title | task 1; task 2; task 3
+```
+
+Generated workspace files are stored inside:
+
+```text
+integrated_workspace/
+```
+
+Private and generated workspace content is ignored by Git, while `.gitkeep` files preserve the folder structure.
 
 ## System Architecture
 
@@ -279,14 +332,17 @@ Multimodal AI Workspace
 ├── Health Overview
 │   └── Checks project structure, screenshots, tests, and documentation
 │
-├── Integrated Workspace Tools
-│   └── Provides local MCP-style tools inside the integrated demo
+├── Integrated RAG Backend
+│   └── Provides document loading, chunking, FAISS retrieval, and grounded answer generation
 │
 ├── Integrated Vision Backend
 │   └── Provides image loading, metadata extraction, Base64 encoding, and vision model access
 │
 ├── Integrated Audio Backend
 │   └── Provides audio loading, transcription, and structured transcript summarization
+│
+├── Integrated Workspace Tools
+│   └── Provides local MCP-style tools inside the integrated demo
 │
 ├── UI Components
 │   └── Reusable Streamlit rendering components
@@ -326,14 +382,18 @@ multimodal-ai-workspace/
 │   ├── config.py
 │   ├── project_registry.py
 │   ├── health_overview.py
-│   ├── integrated_workspace_manager.py
-│   ├── integrated_workspace_tools.py
-│   ├── integrated_assistant.py
+│   ├── integrated_document_loader.py
+│   ├── integrated_text_splitter.py
+│   ├── integrated_vector_store.py
+│   ├── integrated_rag_pipeline.py
 │   ├── integrated_image_loader.py
 │   ├── integrated_vision_pipeline.py
 │   ├── integrated_audio_loader.py
 │   ├── integrated_transcription_pipeline.py
 │   ├── integrated_audio_summary_pipeline.py
+│   ├── integrated_workspace_manager.py
+│   ├── integrated_workspace_tools.py
+│   ├── integrated_assistant.py
 │   ├── ui_components.py
 │   ├── logger.py
 │   └── utils.py
@@ -356,10 +416,15 @@ multimodal-ai-workspace/
 │       └── .gitkeep
 │
 ├── integrated_uploads/
+│   ├── documents/
+│   │   └── .gitkeep
 │   ├── images/
 │   │   └── .gitkeep
 │   └── audio/
 │       └── .gitkeep
+│
+├── vector_db/
+│   └── .gitkeep
 │
 ├── outputs/
 │   └── .gitkeep
@@ -371,7 +436,8 @@ multimodal-ai-workspace/
 │   ├── test_health_overview.py
 │   ├── test_integrated_workspace.py
 │   ├── test_integrated_image_loader.py
-│   └── test_integrated_audio_loader.py
+│   ├── test_integrated_audio_loader.py
+│   └── test_integrated_document_loader.py
 │
 ├── streamlit_app.py
 ├── health_check.py
@@ -422,9 +488,16 @@ APP_NAME=Multimodal AI Workspace
 DEBUG=True
 
 OPENAI_API_KEY=your_openai_api_key_here
+
 OPENAI_VISION_MODEL=gpt-4o-mini
 OPENAI_TRANSCRIPTION_MODEL=gpt-4o-mini-transcribe
 OPENAI_SUMMARY_MODEL=gpt-4o-mini
+
+OPENAI_RAG_MODEL=gpt-4o-mini
+OPENAI_EMBEDDING_MODEL=text-embedding-3-small
+RAG_CHUNK_SIZE=1000
+RAG_CHUNK_OVERLAP=150
+RAG_TOP_K=4
 ```
 
 Important: never commit `.env` to GitHub.
@@ -447,21 +520,18 @@ Then use the sidebar to navigate between:
 - Project Details
 - Integrated Demo
 
-To test the integrated workspace tools, open:
+To test the integrated document RAG demo, open:
 
 ```text
-Integrated Demo → Workspace Tools
+Integrated Demo → Document RAG
 ```
 
-Then try commands such as:
+Then upload a PDF or TXT file, build the knowledge base, and ask a grounded question such as:
 
 ```text
-help
-list files
-write note demo | This note was created inside the integrated workspace.
-read notes/demo.md
-search integrated
-create task demo_tasks | Demo Tasks | Test chat; Check files; Export results
+What is the main idea of this document?
+Summarize the uploaded document.
+اشرحلي محتوى الملف ببساطة.
 ```
 
 To test the integrated vision demo, open:
@@ -485,6 +555,23 @@ Integrated Demo → Audio Summary
 ```
 
 Then upload an audio file and run the analysis. The tab will transcribe the audio, generate a structured summary, and display metadata and model details.
+
+To test the integrated workspace tools, open:
+
+```text
+Integrated Demo → Workspace Tools
+```
+
+Then try commands such as:
+
+```text
+help
+list files
+write note demo | This note was created inside the integrated workspace.
+read notes/demo.md
+search integrated
+create task demo_tasks | Demo Tasks | Test chat; Check files; Export results
+```
 
 ## Health Check
 
@@ -531,6 +618,10 @@ The test suite includes checks for:
 - Integrated audio loading
 - Audio metadata extraction
 - Unsupported audio validation
+- Integrated document loading
+- Document metadata extraction
+- Unsupported document validation
+- Empty document handling
 
 ## Engineering Practices Demonstrated
 
@@ -573,26 +664,24 @@ The second implemented capability is the Image Understanding tab, which introduc
 
 The third implemented capability is the Audio Summary tab, which adds speech-to-text transcription and structured summarization while keeping audio validation, metadata extraction, transcription, and summarization separated into dedicated backend components.
 
+The fourth implemented capability is the Document RAG tab, which adds document upload, chunking, embeddings, local FAISS retrieval, and grounded question answering while keeping each stage separated into dedicated backend components.
+
 ## Future Improvements
 
-- Integrate Document RAG tab
 - Add shared export layer for integrated demos
 - Add integrated demo screenshots
 - Add more end-to-end tests for integrated tabs
-- Add deployment instructions for the integrated workspace
-- Add direct launch buttons for local projects
-- Add automated subprocess-based health checks
-- Add project dependency status checks
 - Add Docker support
-- Add generated architecture diagrams
-- Add portfolio export as PDF
-- Add CI workflow for tests
+- Add deployment instructions for the integrated workspace
+- Add CI workflow for automated tests
 
 ## Tech Stack
 
 - Python
 - Streamlit
 - OpenAI API
+- LangChain
+- FAISS
 - Pillow
 - Pydantic
 - pytest
