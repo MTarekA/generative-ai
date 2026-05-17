@@ -51,3 +51,10 @@ integrated_uploads/images/*
 # Integrated uploaded audio files
 integrated_uploads/audio/*
 !integrated_uploads/audio/.gitkeep
+
+# Integrated RAG uploads and vector store
+integrated_uploads/documents/*
+!integrated_uploads/documents/.gitkeep
+
+integrated_vector_store/*
+!integrated_vector_store/.gitkeep

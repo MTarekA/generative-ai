@@ -21,6 +21,9 @@ LOGS_DIR = PROJECT_ROOT / "logs"
 INTEGRATED_UPLOADS_DIR = PROJECT_ROOT / "integrated_uploads"
 INTEGRATED_IMAGES_DIR = INTEGRATED_UPLOADS_DIR / "images"
 INTEGRATED_AUDIO_DIR = INTEGRATED_UPLOADS_DIR / "audio"
+INTEGRATED_DOCUMENTS_DIR = INTEGRATED_UPLOADS_DIR / "documents"
+
+INTEGRATED_VECTOR_DIR = PROJECT_ROOT / "integrated_vector_store"
 
 
 class Settings(BaseSettings):
@@ -58,6 +61,31 @@ class Settings(BaseSettings):
         alias="OPENAI_SUMMARY_MODEL",
     )
 
+    openai_rag_model: str = Field(
+        default="gpt-4o-mini",
+        alias="OPENAI_RAG_MODEL",
+    )
+
+    openai_embedding_model: str = Field(
+        default="text-embedding-3-small",
+        alias="OPENAI_EMBEDDING_MODEL",
+    )
+
+    rag_chunk_size: int = Field(
+        default=1000,
+        alias="RAG_CHUNK_SIZE",
+    )
+
+    rag_chunk_overlap: int = Field(
+        default=150,
+        alias="RAG_CHUNK_OVERLAP",
+    )
+
+    rag_top_k: int = Field(
+        default=4,
+        alias="RAG_TOP_K",
+    )
+
     model_config = SettingsConfigDict(
         env_file=".env",
         extra="ignore",
@@ -83,6 +111,29 @@ def validate_openai_settings(settings: Settings | None = None) -> None:
         )
 
 
+def validate_rag_settings(settings: Settings | None = None) -> None:
+    """
+    Validate RAG-specific settings.
+    """
+    settings = settings or get_settings()
+
+    validate_openai_settings(settings)
+
+    if settings.rag_chunk_size <= 0:
+        raise ValueError("RAG_CHUNK_SIZE must be greater than 0.")
+
+    if settings.rag_chunk_overlap < 0:
+        raise ValueError("RAG_CHUNK_OVERLAP cannot be negative.")
+
+    if settings.rag_chunk_overlap >= settings.rag_chunk_size:
+        raise ValueError(
+            "RAG_CHUNK_OVERLAP must be smaller than RAG_CHUNK_SIZE."
+        )
+
+    if settings.rag_top_k <= 0:
+        raise ValueError("RAG_TOP_K must be greater than 0.")
+
+
 def ensure_directories() -> None:
     """
     Create required project directories if they do not exist.
@@ -97,6 +148,9 @@ def ensure_directories() -> None:
     INTEGRATED_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
     INTEGRATED_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
     INTEGRATED_AUDIO_DIR.mkdir(parents=True, exist_ok=True)
+    INTEGRATED_DOCUMENTS_DIR.mkdir(parents=True, exist_ok=True)
+
+    INTEGRATED_VECTOR_DIR.mkdir(parents=True, exist_ok=True)
 
 
 if __name__ == "__main__":
@@ -109,11 +163,20 @@ if __name__ == "__main__":
     print("Diagrams dir:", DIAGRAMS_DIR)
     print("Outputs dir:", OUTPUTS_DIR)
     print("Logs dir:", LOGS_DIR)
+
     print("Integrated uploads dir:", INTEGRATED_UPLOADS_DIR)
     print("Integrated images dir:", INTEGRATED_IMAGES_DIR)
     print("Integrated audio dir:", INTEGRATED_AUDIO_DIR)
+    print("Integrated documents dir:", INTEGRATED_DOCUMENTS_DIR)
+    print("Integrated vector dir:", INTEGRATED_VECTOR_DIR)
+
     print("App name:", settings.app_name)
     print("Vision model:", settings.openai_vision_model)
     print("Transcription model:", settings.openai_transcription_model)
     print("Summary model:", settings.openai_summary_model)
+    print("RAG model:", settings.openai_rag_model)
+    print("Embedding model:", settings.openai_embedding_model)
+    print("RAG chunk size:", settings.rag_chunk_size)
+    print("RAG chunk overlap:", settings.rag_chunk_overlap)
+    print("RAG top k:", settings.rag_top_k)
     print("OpenAI key configured:", bool(settings.openai_api_key))
