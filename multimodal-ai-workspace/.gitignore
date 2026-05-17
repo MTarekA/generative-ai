@@ -43,3 +43,7 @@ integrated_workspace/documents/*
 !integrated_workspace/notes/.gitkeep
 !integrated_workspace/tasks/.gitkeep
 !integrated_workspace/documents/.gitkeep
+
+# Integrated uploaded files
+integrated_uploads/images/*
+!integrated_uploads/images/.gitkeep
