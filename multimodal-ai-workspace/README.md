@@ -129,10 +129,10 @@ The currently implemented integrated capabilities are:
 
 - Workspace Tools
 - Image Understanding
-
-The remaining planned integrated capabilities are:
-
 - Audio Summary
+
+The remaining planned integrated capability is:
+
 - Document RAG
 
 ## Integrated Demo
@@ -145,7 +145,7 @@ Current integrated capabilities:
 
 - Workspace Tools: implemented
 - Image Understanding: implemented
-- Audio Summary: planned
+- Audio Summary: implemented
 - Document RAG: planned
 
 ### Workspace Tools
@@ -222,9 +222,50 @@ OPENAI_VISION_MODEL=gpt-4o-mini
 
 Uploaded integrated demo images are ignored by Git.
 
-Planned next integrations:
+### Audio Summary
 
-- Audio Summary tab
+The Audio Summary tab is implemented as part of the integrated demo.
+
+It allows users to upload an audio file, transcribe it, and generate a structured summary directly inside the Multimodal AI Workspace.
+
+It supports:
+
+- MP3, WAV, M4A, WEBM, and MP4 upload
+- Local audio file saving inside `integrated_uploads/audio/`
+- Audio playback inside the dashboard
+- Speech-to-text transcription
+- Structured transcript summarization
+- Transcript display
+- Audio metadata display
+- Model details display
+
+The integrated audio backend is implemented through:
+
+```text
+app/integrated_audio_loader.py
+app/integrated_transcription_pipeline.py
+app/integrated_audio_summary_pipeline.py
+```
+
+The local audio loader handles:
+
+- File existence validation
+- Supported extension validation
+- File size extraction
+- Local metadata extraction
+
+The transcription and summary pipelines use OpenAI models configured through:
+
+```env
+OPENAI_API_KEY=your_openai_api_key_here
+OPENAI_TRANSCRIPTION_MODEL=gpt-4o-mini-transcribe
+OPENAI_SUMMARY_MODEL=gpt-4o-mini
+```
+
+Uploaded integrated demo audio files are ignored by Git.
+
+Planned next integration:
+
 - Document RAG tab
 
 ## System Architecture
@@ -243,6 +284,9 @@ Multimodal AI Workspace
 │
 ├── Integrated Vision Backend
 │   └── Provides image loading, metadata extraction, Base64 encoding, and vision model access
+│
+├── Integrated Audio Backend
+│   └── Provides audio loading, transcription, and structured transcript summarization
 │
 ├── UI Components
 │   └── Reusable Streamlit rendering components
@@ -287,6 +331,9 @@ multimodal-ai-workspace/
 │   ├── integrated_assistant.py
 │   ├── integrated_image_loader.py
 │   ├── integrated_vision_pipeline.py
+│   ├── integrated_audio_loader.py
+│   ├── integrated_transcription_pipeline.py
+│   ├── integrated_audio_summary_pipeline.py
 │   ├── ui_components.py
 │   ├── logger.py
 │   └── utils.py
@@ -309,7 +356,9 @@ multimodal-ai-workspace/
 │       └── .gitkeep
 │
 ├── integrated_uploads/
-│   └── images/
+│   ├── images/
+│   │   └── .gitkeep
+│   └── audio/
 │       └── .gitkeep
 │
 ├── outputs/
@@ -321,7 +370,8 @@ multimodal-ai-workspace/
 │   ├── test_project_registry.py
 │   ├── test_health_overview.py
 │   ├── test_integrated_workspace.py
-│   └── test_integrated_image_loader.py
+│   ├── test_integrated_image_loader.py
+│   └── test_integrated_audio_loader.py
 │
 ├── streamlit_app.py
 ├── health_check.py
@@ -373,6 +423,8 @@ DEBUG=True
 
 OPENAI_API_KEY=your_openai_api_key_here
 OPENAI_VISION_MODEL=gpt-4o-mini
+OPENAI_TRANSCRIPTION_MODEL=gpt-4o-mini-transcribe
+OPENAI_SUMMARY_MODEL=gpt-4o-mini
 ```
 
 Important: never commit `.env` to GitHub.
@@ -426,6 +478,14 @@ What is visible in this image?
 اشرحلي الصورة دي ببساطة.
 ```
 
+To test the integrated audio demo, open:
+
+```text
+Integrated Demo → Audio Summary
+```
+
+Then upload an audio file and run the analysis. The tab will transcribe the audio, generate a structured summary, and display metadata and model details.
+
 ## Health Check
 
 Run:
@@ -468,6 +528,9 @@ The test suite includes checks for:
 - Image metadata extraction
 - Base64 image encoding
 - Unsupported image validation
+- Integrated audio loading
+- Audio metadata extraction
+- Unsupported audio validation
 
 ## Engineering Practices Demonstrated
 
@@ -508,19 +571,19 @@ The first implemented capability is the local Workspace Tools tab because it is 
 
 The second implemented capability is the Image Understanding tab, which introduces model-based multimodal analysis while keeping image loading, validation, and metadata extraction separated from the Streamlit UI.
 
+The third implemented capability is the Audio Summary tab, which adds speech-to-text transcription and structured summarization while keeping audio validation, metadata extraction, transcription, and summarization separated into dedicated backend components.
+
 ## Future Improvements
 
-- Integrate Audio Transcription and Summary tab
 - Integrate Document RAG tab
 - Add shared export layer for integrated demos
 - Add integrated demo screenshots
 - Add more end-to-end tests for integrated tabs
+- Add deployment instructions for the integrated workspace
 - Add direct launch buttons for local projects
 - Add automated subprocess-based health checks
 - Add project dependency status checks
-- Add combined demo mode
 - Add Docker support
-- Add deployment instructions
 - Add generated architecture diagrams
 - Add portfolio export as PDF
 - Add CI workflow for tests
