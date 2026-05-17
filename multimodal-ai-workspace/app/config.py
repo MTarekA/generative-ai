@@ -20,6 +20,7 @@ LOGS_DIR = PROJECT_ROOT / "logs"
 
 INTEGRATED_UPLOADS_DIR = PROJECT_ROOT / "integrated_uploads"
 INTEGRATED_IMAGES_DIR = INTEGRATED_UPLOADS_DIR / "images"
+INTEGRATED_AUDIO_DIR = INTEGRATED_UPLOADS_DIR / "audio"
 
 
 class Settings(BaseSettings):
@@ -45,6 +46,16 @@ class Settings(BaseSettings):
     openai_vision_model: str = Field(
         default="gpt-4o-mini",
         alias="OPENAI_VISION_MODEL",
+    )
+
+    openai_transcription_model: str = Field(
+        default="gpt-4o-mini-transcribe",
+        alias="OPENAI_TRANSCRIPTION_MODEL",
+    )
+
+    openai_summary_model: str = Field(
+        default="gpt-4o-mini",
+        alias="OPENAI_SUMMARY_MODEL",
     )
 
     model_config = SettingsConfigDict(
@@ -82,8 +93,10 @@ def ensure_directories() -> None:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
     LOGS_DIR.mkdir(parents=True, exist_ok=True)
+
     INTEGRATED_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
     INTEGRATED_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+    INTEGRATED_AUDIO_DIR.mkdir(parents=True, exist_ok=True)
 
 
 if __name__ == "__main__":
@@ -98,6 +111,9 @@ if __name__ == "__main__":
     print("Logs dir:", LOGS_DIR)
     print("Integrated uploads dir:", INTEGRATED_UPLOADS_DIR)
     print("Integrated images dir:", INTEGRATED_IMAGES_DIR)
+    print("Integrated audio dir:", INTEGRATED_AUDIO_DIR)
     print("App name:", settings.app_name)
     print("Vision model:", settings.openai_vision_model)
+    print("Transcription model:", settings.openai_transcription_model)
+    print("Summary model:", settings.openai_summary_model)
     print("OpenAI key configured:", bool(settings.openai_api_key))
