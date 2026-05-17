@@ -1,20 +1,22 @@
 # Generative AI Portfolio
 
-This repository contains a collection of practical Generative AI projects covering multiple AI application areas, including text-based RAG systems, vision-language applications, voice/audio assistants, tool-using AI agents, and a unified portfolio dashboard.
+This repository contains a collection of practical Generative AI projects covering multiple AI application areas, including text-based RAG systems, vision-language applications, voice/audio assistants, tool-connected AI agents, and a unified multimodal AI workspace.
 
 The goal of this portfolio is to demonstrate not only isolated model calls, but complete AI application workflows with clean project structure, configuration management, user interfaces, testing, logging, health checks, documentation, and portfolio-level system presentation.
+
+The repository also includes a unified Streamlit workspace that brings the main capabilities together in one integrated demo across document RAG, image understanding, audio summarization, and workspace tools.
 
 ## Portfolio Overview
 
 | Project | Area | Status | Description |
 |---|---|---|---|
-| Multimodal AI Workspace | Portfolio Hub | Completed | A unified dashboard that presents all Generative AI projects, capability matrix, health overview, architecture, screenshots, and run commands. |
+| Multimodal AI Workspace | Portfolio Hub / Integrated App | Completed | A unified Streamlit workspace that presents all portfolio projects and integrates live RAG, vision, audio, and workspace tools in one interface. |
 | AI Study Assistant | RAG / Text | Completed | A Retrieval-Augmented Generation application for asking questions about uploaded lecture documents. |
 | AI Image Understanding Assistant | Vision | Completed | A vision-language application for analyzing uploaded images and answering questions about their visual content. |
 | AI Voice Meeting Assistant | Voice / Audio | Completed | A voice/audio application for transcribing audio files and generating structured summaries. |
 | MCP Workspace Assistant | MCP / Tools | Completed | A tool-connected workspace assistant for safely interacting with local files through MCP-style tools. |
 
-## Unified Portfolio Hub
+## Unified Portfolio Hub and Integrated App
 
 ### Multimodal AI Workspace
 
@@ -24,11 +26,14 @@ Location:
 multimodal-ai-workspace/
 ```
 
-Multimodal AI Workspace is the unified dashboard for this Generative AI portfolio.
+Multimodal AI Workspace is the unified dashboard and integrated application layer for this Generative AI portfolio.
 
-It brings the four core projects together in one professional Streamlit interface and provides a system-level overview of the complete portfolio.
+It has two roles:
 
-The hub includes:
+1. Portfolio Hub: presents all individual projects, architecture, capability matrix, health overview, screenshots, and run commands.
+2. Integrated Demo: brings the core capabilities together in one Streamlit interface.
+
+The portfolio hub includes:
 
 - Portfolio overview
 - Project cards
@@ -39,6 +44,22 @@ The hub includes:
 - Demo screenshots
 - Local run commands
 - Shared engineering practices
+
+The integrated demo includes:
+
+- Document RAG for PDF/TXT question answering
+- Image Understanding for vision-language analysis
+- Audio Summary for transcription and structured summarization
+- Workspace Tools for MCP-style local file interaction
+
+Main integrated capabilities:
+
+| Capability | Status | Description |
+|---|---|---|
+| Document RAG | Implemented | Upload PDF/TXT files, build a FAISS knowledge base, ask questions, and view source previews. |
+| Image Understanding | Implemented | Upload images and ask questions about visual content using a vision-capable model. |
+| Audio Summary | Implemented | Upload audio files, transcribe speech, and generate structured summaries. |
+| Workspace Tools | Implemented | Use MCP-style local tools to list files, write notes, read files, search content, and create task files. |
 
 Run locally:
 
@@ -213,6 +234,9 @@ generative-ai/
 │   ├── app/
 │   ├── tests/
 │   ├── assets/
+│   ├── integrated_uploads/
+│   ├── integrated_workspace/
+│   ├── integrated_vector_store/
 │   ├── streamlit_app.py
 │   ├── health_check.py
 │   └── README.md
@@ -275,6 +299,7 @@ Across the projects, the portfolio follows a consistent software engineering app
 - Separation of concerns between loading, processing, pipeline logic, tools, and UI
 - Independent project execution
 - Portfolio-level dashboard for unified presentation
+- Integrated multimodal demo architecture
 
 ## Safety and Privacy Notes
 
@@ -283,6 +308,8 @@ Across the projects, the portfolio follows a consistent software engineering app
 - Demo files should not contain private or sensitive information.
 - Each project includes its own README with setup and usage instructions.
 - The MCP Workspace Assistant restricts file operations to a controlled local workspace.
+- The integrated workspace also ignores uploaded images, audio files, documents, generated notes, generated task files, and FAISS index files.
+- `.gitkeep` files are used only to preserve required folder structures.
 
 ## Tech Stack
 
@@ -306,8 +333,10 @@ This repository is intended as a practical Generative AI portfolio. It is design
 - Vision-language systems
 - Audio and speech systems
 - Tool-connected agents
-- Unified portfolio dashboards
+- Unified multimodal AI workspaces
 
 The focus is not only on using AI models, but on building complete, understandable, maintainable, and extensible AI applications.
 
 The repository demonstrates how Generative AI systems can be structured with user interfaces, command-line entry points, testing, health checks, logging, documentation, safe configuration, and clear separation between application layers.
+
+It also demonstrates a system-level approach: individual AI applications are kept independently runnable, while the Multimodal AI Workspace provides a unified dashboard and integrated live demo for the full portfolio.
