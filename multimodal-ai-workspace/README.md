@@ -42,6 +42,14 @@ The dashboard highlights:
 
 ![Multimodal AI Workspace - Project Details](assets/screenshots/screenshot_project_details.png)
 
+### Integrated Multimodal Demo
+
+![Multimodal AI Workspace - Integrated Demo](assets/screenshots/screenshot_integrated_demo.png)
+
+### Project Details
+
+![Multimodal AI Workspace - Project Details](assets/screenshots/screenshot_project_details.png)
+
 ## Why This Project Exists
 
 The four individual projects demonstrate practical Generative AI implementation across different modalities.
