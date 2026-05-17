@@ -125,7 +125,15 @@ Displays detailed information and screenshots for each individual project.
 
 Provides the first step toward a real unified multimodal workspace.
 
-The current implemented capability is the Workspace Tools tab, which allows safe local file interaction directly inside the Multimodal AI Workspace dashboard.
+The currently implemented integrated capabilities are:
+
+- Workspace Tools
+- Image Understanding
+
+The remaining planned integrated capabilities are:
+
+- Audio Summary
+- Document RAG
 
 ## Integrated Demo
 
@@ -133,7 +141,12 @@ The dashboard now includes an `Integrated Demo` section.
 
 This section represents phase two of the portfolio: gradually turning the portfolio hub from a presentation dashboard into a real unified multimodal workspace.
 
-The first integrated capability is:
+Current integrated capabilities:
+
+- Workspace Tools: implemented
+- Image Understanding: implemented
+- Audio Summary: planned
+- Document RAG: planned
 
 ### Workspace Tools
 
@@ -170,9 +183,47 @@ integrated_workspace/
 
 Private and generated workspace content is ignored by Git, while `.gitkeep` files preserve the folder structure.
 
+### Image Understanding
+
+The Image Understanding tab is also implemented as part of the integrated demo.
+
+It allows users to upload an image and ask questions about its visual content directly inside the Multimodal AI Workspace.
+
+It supports:
+
+- PNG, JPG, JPEG, and WEBP image upload
+- Image preview inside the dashboard
+- Vision-language question answering
+- Image metadata display
+- Chat-style interaction
+- Arabic and English questions
+- Local image storage inside `integrated_uploads/images/`
+
+The integrated vision backend is implemented through:
+
+```text
+app/integrated_image_loader.py
+app/integrated_vision_pipeline.py
+```
+
+The local image loader handles:
+
+- Image validation
+- Metadata extraction
+- MIME type detection
+- Base64 encoding
+
+The vision pipeline uses an OpenAI vision-capable model configured through:
+
+```env
+OPENAI_API_KEY=your_openai_api_key_here
+OPENAI_VISION_MODEL=gpt-4o-mini
+```
+
+Uploaded integrated demo images are ignored by Git.
+
 Planned next integrations:
 
-- Image Understanding tab
 - Audio Summary tab
 - Document RAG tab
 
@@ -189,6 +240,9 @@ Multimodal AI Workspace
 │
 ├── Integrated Workspace Tools
 │   └── Provides local MCP-style tools inside the integrated demo
+│
+├── Integrated Vision Backend
+│   └── Provides image loading, metadata extraction, Base64 encoding, and vision model access
 │
 ├── UI Components
 │   └── Reusable Streamlit rendering components
@@ -231,6 +285,8 @@ multimodal-ai-workspace/
 │   ├── integrated_workspace_manager.py
 │   ├── integrated_workspace_tools.py
 │   ├── integrated_assistant.py
+│   ├── integrated_image_loader.py
+│   ├── integrated_vision_pipeline.py
 │   ├── ui_components.py
 │   ├── logger.py
 │   └── utils.py
@@ -252,6 +308,10 @@ multimodal-ai-workspace/
 │   └── tasks/
 │       └── .gitkeep
 │
+├── integrated_uploads/
+│   └── images/
+│       └── .gitkeep
+│
 ├── outputs/
 │   └── .gitkeep
 │
@@ -260,12 +320,14 @@ multimodal-ai-workspace/
 ├── tests/
 │   ├── test_project_registry.py
 │   ├── test_health_overview.py
-│   └── test_integrated_workspace.py
+│   ├── test_integrated_workspace.py
+│   └── test_integrated_image_loader.py
 │
 ├── streamlit_app.py
 ├── health_check.py
 ├── requirements.txt
 ├── pytest.ini
+├── .env.example
 ├── .gitignore
 └── README.md
 ```
@@ -298,6 +360,22 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
 ```bash
 pip install -r requirements.txt
 ```
+
+### 4. Configure environment variables
+
+Create a `.env` file based on `.env.example`.
+
+Example:
+
+```env
+APP_NAME=Multimodal AI Workspace
+DEBUG=True
+
+OPENAI_API_KEY=your_openai_api_key_here
+OPENAI_VISION_MODEL=gpt-4o-mini
+```
+
+Important: never commit `.env` to GitHub.
 
 ## Usage
 
@@ -332,6 +410,20 @@ write note demo | This note was created inside the integrated workspace.
 read notes/demo.md
 search integrated
 create task demo_tasks | Demo Tasks | Test chat; Check files; Export results
+```
+
+To test the integrated vision demo, open:
+
+```text
+Integrated Demo → Image Understanding
+```
+
+Then upload an image and ask a question such as:
+
+```text
+Describe this image briefly.
+What is visible in this image?
+اشرحلي الصورة دي ببساطة.
 ```
 
 ## Health Check
@@ -372,6 +464,10 @@ The test suite includes checks for:
 - Integrated workspace tools
 - Assistant command routing
 - Path traversal protection
+- Integrated image loading
+- Image metadata extraction
+- Base64 image encoding
+- Unsupported image validation
 
 ## Engineering Practices Demonstrated
 
@@ -406,15 +502,19 @@ This has several advantages:
 - Better maintainability
 - Easier future extension
 
-The integrated demo is added incrementally. The first implemented capability is the local Workspace Tools tab because it is safe, deterministic, testable, and does not require external API calls.
+The integrated demo is added incrementally.
+
+The first implemented capability is the local Workspace Tools tab because it is safe, deterministic, testable, and does not require external API calls.
+
+The second implemented capability is the Image Understanding tab, which introduces model-based multimodal analysis while keeping image loading, validation, and metadata extraction separated from the Streamlit UI.
 
 ## Future Improvements
 
-- Integrate Vision Image Understanding tab
 - Integrate Audio Transcription and Summary tab
 - Integrate Document RAG tab
 - Add shared export layer for integrated demos
 - Add integrated demo screenshots
+- Add more end-to-end tests for integrated tabs
 - Add direct launch buttons for local projects
 - Add automated subprocess-based health checks
 - Add project dependency status checks
@@ -429,6 +529,8 @@ The integrated demo is added incrementally. The first implemented capability is 
 
 - Python
 - Streamlit
+- OpenAI API
+- Pillow
 - Pydantic
 - pytest
 - Git / GitHub
