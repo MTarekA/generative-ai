@@ -4,6 +4,7 @@ import streamlit as st
 from PIL import Image
 
 from app.config import (
+    INTEGRATED_AUDIO_DIR,
     INTEGRATED_IMAGES_DIR,
     ensure_directories,
     get_settings,
@@ -13,6 +14,8 @@ from app.health_overview import (
     get_portfolio_health_overview,
 )
 from app.integrated_assistant import IntegratedWorkspaceAssistant
+from app.integrated_audio_summary_pipeline import IntegratedAudioSummaryPipeline
+from app.integrated_transcription_pipeline import IntegratedTranscriptionPipeline
 from app.integrated_vision_pipeline import IntegratedVisionPipeline
 from app.integrated_workspace_manager import (
     INTEGRATED_WORKSPACE_DIR,
@@ -658,6 +661,157 @@ def render_image_understanding_integrated_tab() -> None:
         st.success("Integrated vision history cleared.")
 
 
+def initialize_integrated_audio_state() -> None:
+    """
+    Initialize session state for the integrated audio demo.
+    """
+    if "integrated_audio_result" not in st.session_state:
+        st.session_state.integrated_audio_result = None
+
+    if "integrated_current_audio_path" not in st.session_state:
+        st.session_state.integrated_current_audio_path = None
+
+    if "integrated_current_audio_name" not in st.session_state:
+        st.session_state.integrated_current_audio_name = None
+
+
+def save_integrated_uploaded_audio(uploaded_file) -> Path:
+    """
+    Save uploaded audio into integrated_uploads/audio.
+    """
+    INTEGRATED_AUDIO_DIR.mkdir(parents=True, exist_ok=True)
+
+    file_path = INTEGRATED_AUDIO_DIR / uploaded_file.name
+
+    with open(file_path, "wb") as file:
+        file.write(uploaded_file.getbuffer())
+
+    return file_path
+
+
+def render_integrated_audio_metadata(metadata: dict) -> None:
+    """
+    Render audio metadata in a compact format.
+    """
+    with st.expander("Audio metadata"):
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.metric("File Size MB", metadata.get("file_size_mb", "N/A"))
+
+        with col2:
+            st.metric("Extension", metadata.get("file_extension", "N/A"))
+
+        st.write(f"File name: {metadata.get('file_name', 'unknown')}")
+        st.write(f"File size bytes: {metadata.get('file_size_bytes', 'unknown')}")
+
+
+def analyze_integrated_audio(audio_path: Path) -> None:
+    """
+    Run integrated audio transcription and summarization.
+    """
+    try:
+        with st.spinner("Transcribing audio..."):
+            transcription_pipeline = IntegratedTranscriptionPipeline()
+            transcription_response = transcription_pipeline.transcribe_audio(
+                audio_path
+            )
+
+        with st.spinner("Summarizing transcript..."):
+            summary_pipeline = IntegratedAudioSummaryPipeline()
+            summary_response = summary_pipeline.summarize_transcript(
+                transcription_response.transcript
+            )
+
+        st.session_state.integrated_audio_result = {
+            "audio_path": str(audio_path),
+            "audio_metadata": transcription_response.audio_metadata,
+            "transcription_model": transcription_response.model,
+            "summary_model": summary_response.model,
+            "transcript": transcription_response.transcript,
+            "summary": summary_response.summary,
+        }
+
+        st.success("Audio analysis completed successfully.")
+
+    except Exception as error:
+        st.error(f"Error: {error}")
+
+
+def render_integrated_audio_result() -> None:
+    """
+    Render the latest integrated audio result.
+    """
+    result = st.session_state.integrated_audio_result
+
+    if not result:
+        return
+
+    st.subheader("Transcript")
+    st.write(result["transcript"])
+
+    st.subheader("Structured Summary")
+    st.write(result["summary"])
+
+    render_integrated_audio_metadata(result["audio_metadata"])
+
+    with st.expander("Model details"):
+        st.write(f"Transcription model: {result['transcription_model']}")
+        st.write(f"Summary model: {result['summary_model']}")
+
+
+def render_audio_summary_integrated_tab() -> None:
+    """
+    Render the integrated audio summary tab.
+    """
+    initialize_integrated_audio_state()
+
+    st.subheader("Audio Summary")
+    st.write(
+        "This tab integrates audio transcription and structured summarization "
+        "directly inside the Multimodal AI Workspace."
+    )
+
+    uploaded_file = st.file_uploader(
+        "Upload an audio file",
+        type=["mp3", "wav", "m4a", "webm", "mp4"],
+        key="integrated_audio_uploader",
+    )
+
+    if uploaded_file is not None:
+        audio_path = save_integrated_uploaded_audio(uploaded_file)
+
+        if st.session_state.integrated_current_audio_name != uploaded_file.name:
+            st.session_state.integrated_audio_result = None
+
+        st.session_state.integrated_current_audio_path = audio_path
+        st.session_state.integrated_current_audio_name = uploaded_file.name
+
+        st.success(f"Audio saved: {audio_path.name}")
+
+    if st.session_state.integrated_current_audio_path is None:
+        st.info("Upload an audio file to start the integrated audio demo.")
+        return
+
+    audio_path = Path(st.session_state.integrated_current_audio_path)
+
+    st.subheader("Uploaded Audio")
+    st.audio(str(audio_path))
+
+    col1, col2 = st.columns([1, 1])
+
+    with col1:
+        if st.button("Analyze Audio"):
+            analyze_integrated_audio(audio_path)
+
+    with col2:
+        if st.button("Clear Audio Result"):
+            st.session_state.integrated_audio_result = None
+            st.success("Integrated audio result cleared.")
+
+    render_integrated_audio_result()
+
+
 def render_integrated_demo_page() -> None:
     """
     Render the integrated demo page.
@@ -675,8 +829,8 @@ def render_integrated_demo_page() -> None:
 
     st.info(
         "This section is being built incrementally. "
-        "The Workspace Tools tab is already integrated locally, and the "
-        "Image Understanding tab is now integrated with an OpenAI vision model."
+        "Workspace Tools, Image Understanding, and Audio Summary are now "
+        "integrated inside this unified workspace."
     )
 
     rag_tab, vision_tab, audio_tab, mcp_tab = st.tabs(
@@ -716,28 +870,7 @@ def render_integrated_demo_page() -> None:
         render_image_understanding_integrated_tab()
 
     with audio_tab:
-        st.subheader("Audio Summary")
-        st.write(
-            "This tab will integrate audio transcription and structured "
-            "summarization from the AI Voice Meeting Assistant project."
-        )
-
-        st.markdown(
-            """
-            Planned capabilities:
-
-            - Upload MP3, WAV, M4A, WEBM, or MP4 files
-            - Transcribe speech to text
-            - Generate structured summaries
-            - Extract action items, decisions, and open questions
-            - Save and export results
-            """
-        )
-
-        st.warning(
-            "Status: planned integration. "
-            "This will be added after the vision integration."
-        )
+        render_audio_summary_integrated_tab()
 
     with mcp_tab:
         render_workspace_tools_integrated_tab()
