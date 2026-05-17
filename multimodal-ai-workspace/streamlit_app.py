@@ -5,6 +5,12 @@ from app.health_overview import (
     get_overall_portfolio_score,
     get_portfolio_health_overview,
 )
+from app.integrated_assistant import IntegratedWorkspaceAssistant
+from app.integrated_workspace_manager import (
+    INTEGRATED_WORKSPACE_DIR,
+    IntegratedWorkspaceManager,
+    ensure_integrated_workspace,
+)
 from app.project_registry import get_projects
 from app.ui_components import (
     render_architecture_overview,
@@ -69,6 +75,15 @@ def apply_custom_styles() -> None:
             color: #6b7280;
             font-size: 0.92rem;
         }
+
+        .tool-box {
+            background-color: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 0.75rem;
+            margin-top: 0.75rem;
+            font-size: 0.95rem;
+        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -94,9 +109,9 @@ def render_hero() -> None:
     )
 
 
-def render_sidebar(project_names: list[str]) -> str:
+def render_sidebar(project_names: list[str]) -> tuple[str, str]:
     """
-    Render sidebar navigation and return selected page.
+    Render sidebar navigation and return selected page and selected project.
     """
     with st.sidebar:
         st.header("Navigation")
@@ -110,6 +125,7 @@ def render_sidebar(project_names: list[str]) -> str:
                 "Health Overview",
                 "Architecture",
                 "Project Details",
+                "Integrated Demo",
             ],
         )
 
@@ -147,7 +163,10 @@ def render_overview_page() -> None:
         st.metric("Projects", len(projects))
 
     with col2:
-        st.metric("Completed", len([p for p in projects if p.status == "Completed"]))
+        st.metric(
+            "Completed",
+            len([p for p in projects if p.status == "Completed"]),
+        )
 
     with col3:
         st.metric("AI Areas", len(set(project.area for project in projects)))
@@ -252,10 +271,317 @@ def render_project_details_page(selected_project_name: str) -> None:
     projects = get_projects()
 
     selected_project = next(
-        project for project in projects if project.name == selected_project_name
+        project
+        for project in projects
+        if project.name == selected_project_name
     )
 
     render_project_detail(selected_project)
+
+
+def initialize_integrated_workspace_state() -> None:
+    """
+    Initialize session state for the integrated workspace tools demo.
+    """
+    if "integrated_workspace_messages" not in st.session_state:
+        st.session_state.integrated_workspace_messages = []
+
+    if "integrated_workspace_assistant" not in st.session_state:
+        st.session_state.integrated_workspace_assistant = (
+            IntegratedWorkspaceAssistant()
+        )
+
+
+def render_integrated_workspace_files() -> None:
+    """
+    Render files currently available in the integrated workspace.
+    """
+    manager = IntegratedWorkspaceManager()
+    files = manager.list_files()
+
+    st.subheader("Integrated Workspace Files")
+
+    if not files:
+        st.info("No files found in the integrated workspace.")
+        return
+
+    for file in files:
+        st.write(f"- {file.relative_path}")
+
+
+def render_integrated_tool_result(tool_name: str, tool_result) -> None:
+    """
+    Render structured tool result for the integrated workspace assistant.
+    """
+    with st.expander("Tool details"):
+        st.markdown(
+            f'<div class="tool-box">Tool used: <code>{tool_name}</code></div>',
+            unsafe_allow_html=True,
+        )
+
+        if tool_result is None:
+            st.info("No structured tool result returned.")
+        else:
+            st.json(tool_result)
+
+
+def render_integrated_workspace_chat_history() -> None:
+    """
+    Render integrated workspace chat history.
+    """
+    for message in st.session_state.integrated_workspace_messages:
+        role = message["role"]
+        content = message["content"]
+
+        with st.chat_message(role):
+            st.write(content)
+
+            if role == "assistant":
+                render_integrated_tool_result(
+                    tool_name=message.get("tool_name", "none"),
+                    tool_result=message.get("tool_result"),
+                )
+
+
+def handle_integrated_workspace_message(user_message: str) -> None:
+    """
+    Process a user message through the integrated workspace assistant.
+    """
+    st.session_state.integrated_workspace_messages.append(
+        {
+            "role": "user",
+            "content": user_message,
+        }
+    )
+
+    with st.chat_message("user"):
+        st.write(user_message)
+
+    with st.chat_message("assistant"):
+        try:
+            response = (
+                st.session_state.integrated_workspace_assistant
+                .handle_message(user_message)
+            )
+
+            st.write(response.message)
+
+            render_integrated_tool_result(
+                tool_name=response.tool_name,
+                tool_result=response.tool_result,
+            )
+
+            st.session_state.integrated_workspace_messages.append(
+                {
+                    "role": "assistant",
+                    "content": response.message,
+                    "tool_name": response.tool_name,
+                    "tool_result": response.tool_result,
+                }
+            )
+
+        except Exception as error:
+            error_message = f"Error: {error}"
+            st.error(error_message)
+
+            st.session_state.integrated_workspace_messages.append(
+                {
+                    "role": "assistant",
+                    "content": error_message,
+                    "tool_name": "error",
+                    "tool_result": None,
+                }
+            )
+
+
+def render_workspace_tools_integrated_tab() -> None:
+    """
+    Render the fully integrated MCP-style workspace tools tab.
+    """
+    ensure_integrated_workspace()
+    initialize_integrated_workspace_state()
+
+    st.subheader("Workspace Tools")
+    st.write(
+        "This tab is the first fully integrated capability inside the "
+        "Multimodal AI Workspace. It provides safe local file interaction "
+        "through MCP-style tools."
+    )
+
+    col1, col2 = st.columns([2, 1])
+
+    with col1:
+        st.markdown(
+            """
+            Try commands like:
+
+            ```text
+            help
+            list files
+            write note demo | This note was created inside the integrated workspace.
+            read notes/demo.md
+            search integrated
+            create task demo_tasks | Demo Tasks | Test chat; Check files; Export results
+            ```
+            """
+        )
+
+    with col2:
+        st.caption("All file operations are restricted to:")
+        st.code(str(INTEGRATED_WORKSPACE_DIR), language="text")
+
+    st.divider()
+
+    left_col, right_col = st.columns([2, 1])
+
+    with left_col:
+        st.subheader("Integrated Workspace Chat")
+
+        render_integrated_workspace_chat_history()
+
+        user_message = st.chat_input(
+            "Type a workspace command, for example: list files"
+        )
+
+        if user_message:
+            handle_integrated_workspace_message(user_message)
+
+    with right_col:
+        render_integrated_workspace_files()
+
+        st.divider()
+
+        if st.button("Refresh Integrated Workspace"):
+            st.rerun()
+
+        if st.button("Clear Integrated Chat History"):
+            st.session_state.integrated_workspace_messages = []
+            st.success("Integrated workspace chat history cleared.")
+
+
+def render_integrated_demo_page() -> None:
+    """
+    Render the integrated demo page.
+
+    This page is the starting point for phase two of the portfolio:
+    a single interface that will gradually integrate the actual
+    functionality of the four individual projects.
+    """
+    st.title("Integrated Multimodal Demo")
+    st.caption(
+        "Phase two of the portfolio: a unified workspace where document RAG, "
+        "image understanding, audio summarization, and MCP-style tools will "
+        "become accessible from one interface."
+    )
+
+    st.info(
+        "This section is being built incrementally. "
+        "The first integrated capability is the MCP Workspace Tools tab, "
+        "because it is local, safe, and does not require external API calls."
+    )
+
+    rag_tab, vision_tab, audio_tab, mcp_tab = st.tabs(
+        [
+            "Document RAG",
+            "Image Understanding",
+            "Audio Summary",
+            "Workspace Tools",
+        ]
+    )
+
+    with rag_tab:
+        st.subheader("Document RAG")
+        st.write(
+            "This tab will integrate the document question-answering workflow "
+            "from the AI Study Assistant project."
+        )
+
+        st.markdown(
+            """
+            Planned capabilities:
+
+            - Upload PDF or TXT files
+            - Build or load a local knowledge base
+            - Ask questions grounded in uploaded documents
+            - Show retrieved source previews
+            - Export chat history
+            """
+        )
+
+        st.warning(
+            "Status: planned integration. "
+            "This will be added after the lighter integrations are stable."
+        )
+
+    with vision_tab:
+        st.subheader("Image Understanding")
+        st.write(
+            "This tab will integrate image upload and vision-language analysis "
+            "from the AI Image Understanding Assistant project."
+        )
+
+        st.markdown(
+            """
+            Planned capabilities:
+
+            - Upload PNG, JPG, JPEG, or WEBP images
+            - Ask questions about image content
+            - Display image metadata
+            - Save analysis results
+            - Export analysis history
+            """
+        )
+
+        st.warning(
+            "Status: planned integration. "
+            "This will be added after the MCP tools tab."
+        )
+
+    with audio_tab:
+        st.subheader("Audio Summary")
+        st.write(
+            "This tab will integrate audio transcription and structured "
+            "summarization from the AI Voice Meeting Assistant project."
+        )
+
+        st.markdown(
+            """
+            Planned capabilities:
+
+            - Upload MP3, WAV, M4A, WEBM, or MP4 files
+            - Transcribe speech to text
+            - Generate structured summaries
+            - Extract action items, decisions, and open questions
+            - Save and export results
+            """
+        )
+
+        st.warning(
+            "Status: planned integration. "
+            "This will be added after the vision integration."
+        )
+
+    with mcp_tab:
+        render_workspace_tools_integrated_tab()
+
+    st.divider()
+
+    st.subheader("Integration Roadmap")
+
+    st.code(
+        """
+Phase 2 Integration Roadmap
+
+1. Integrated Demo page structure
+2. MCP Workspace Tools tab
+3. Vision Image Understanding tab
+4. Audio Transcription and Summary tab
+5. Document RAG tab
+6. Shared UX and export layer
+7. Tests, health checks, README update, screenshots
+        """,
+        language="text",
+    )
 
 
 def main() -> None:
@@ -288,6 +614,9 @@ def main() -> None:
 
     elif page == "Project Details":
         render_project_details_page(selected_project)
+
+    elif page == "Integrated Demo":
+        render_integrated_demo_page()
 
     render_footer()
 
