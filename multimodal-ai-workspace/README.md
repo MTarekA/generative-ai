@@ -121,6 +121,61 @@ Shows the high-level architecture across the full Generative AI portfolio.
 
 Displays detailed information and screenshots for each individual project.
 
+### Integrated Demo
+
+Provides the first step toward a real unified multimodal workspace.
+
+The current implemented capability is the Workspace Tools tab, which allows safe local file interaction directly inside the Multimodal AI Workspace dashboard.
+
+## Integrated Demo
+
+The dashboard now includes an `Integrated Demo` section.
+
+This section represents phase two of the portfolio: gradually turning the portfolio hub from a presentation dashboard into a real unified multimodal workspace.
+
+The first integrated capability is:
+
+### Workspace Tools
+
+The Workspace Tools tab is fully implemented and runs locally without external API calls.
+
+It supports:
+
+- Listing integrated workspace files
+- Writing Markdown notes
+- Reading notes
+- Appending content to existing notes
+- Searching workspace content
+- Creating Markdown task files
+- Showing structured tool results as JSON
+- Safe path handling inside `integrated_workspace/`
+
+Supported commands:
+
+```text
+help
+list files
+write note file_name | note content
+append note file_name | content to append
+read notes/example.md
+search keyword
+create task file_name | Task title | task 1; task 2; task 3
+```
+
+Generated workspace files are stored inside:
+
+```text
+integrated_workspace/
+```
+
+Private and generated workspace content is ignored by Git, while `.gitkeep` files preserve the folder structure.
+
+Planned next integrations:
+
+- Image Understanding tab
+- Audio Summary tab
+- Document RAG tab
+
 ## System Architecture
 
 ```text
@@ -131,6 +186,9 @@ Multimodal AI Workspace
 │
 ├── Health Overview
 │   └── Checks project structure, screenshots, tests, and documentation
+│
+├── Integrated Workspace Tools
+│   └── Provides local MCP-style tools inside the integrated demo
 │
 ├── UI Components
 │   └── Reusable Streamlit rendering components
@@ -153,8 +211,11 @@ Generative AI Portfolio
 ├── Voice / Audio
 │   └── Audio upload → Transcription → Summarization → Structured result
 │
-└── MCP / Tools
-    └── User command → Assistant router → Tools → Workspace manager → Safe file operations
+├── MCP / Tools
+│   └── User command → Assistant router → Tools → Workspace manager → Safe file operations
+│
+└── Multimodal Workspace Hub
+    └── Project registry → Health overview → Integrated demo → Unified presentation
 ```
 
 ## Project Structure
@@ -167,6 +228,9 @@ multimodal-ai-workspace/
 │   ├── config.py
 │   ├── project_registry.py
 │   ├── health_overview.py
+│   ├── integrated_workspace_manager.py
+│   ├── integrated_workspace_tools.py
+│   ├── integrated_assistant.py
 │   ├── ui_components.py
 │   ├── logger.py
 │   └── utils.py
@@ -180,6 +244,14 @@ multimodal-ai-workspace/
 ├── data/
 │   └── .gitkeep
 │
+├── integrated_workspace/
+│   ├── documents/
+│   │   └── .gitkeep
+│   ├── notes/
+│   │   └── .gitkeep
+│   └── tasks/
+│       └── .gitkeep
+│
 ├── outputs/
 │   └── .gitkeep
 │
@@ -187,7 +259,8 @@ multimodal-ai-workspace/
 │
 ├── tests/
 │   ├── test_project_registry.py
-│   └── test_health_overview.py
+│   ├── test_health_overview.py
+│   └── test_integrated_workspace.py
 │
 ├── streamlit_app.py
 ├── health_check.py
@@ -242,6 +315,24 @@ Then use the sidebar to navigate between:
 - Health Overview
 - Architecture
 - Project Details
+- Integrated Demo
+
+To test the integrated workspace tools, open:
+
+```text
+Integrated Demo → Workspace Tools
+```
+
+Then try commands such as:
+
+```text
+help
+list files
+write note demo | This note was created inside the integrated workspace.
+read notes/demo.md
+search integrated
+create task demo_tasks | Demo Tasks | Test chat; Check files; Export results
+```
 
 ## Health Check
 
@@ -272,6 +363,15 @@ Expected result:
 ```text
 All tests passed
 ```
+
+The test suite includes checks for:
+
+- Project registry
+- Portfolio health overview
+- Integrated workspace file handling
+- Integrated workspace tools
+- Assistant command routing
+- Path traversal protection
 
 ## Engineering Practices Demonstrated
 
@@ -306,13 +406,19 @@ This has several advantages:
 - Better maintainability
 - Easier future extension
 
+The integrated demo is added incrementally. The first implemented capability is the local Workspace Tools tab because it is safe, deterministic, testable, and does not require external API calls.
+
 ## Future Improvements
 
+- Integrate Vision Image Understanding tab
+- Integrate Audio Transcription and Summary tab
+- Integrate Document RAG tab
+- Add shared export layer for integrated demos
+- Add integrated demo screenshots
 - Add direct launch buttons for local projects
 - Add automated subprocess-based health checks
 - Add project dependency status checks
 - Add combined demo mode
-- Add integrated RAG, vision, audio, and MCP tabs
 - Add Docker support
 - Add deployment instructions
 - Add generated architecture diagrams
